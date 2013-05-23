@@ -1,17 +1,4 @@
 # ニコニコ動画のpart数ごとの動画件数を調べる
-
-=begin 参考
-rubyでニコニコ動画のコメントを取得する
-http://hai3.net/blog/2011/07/21/ruby-niconico/
-
-ニコニコ動画に動画検索APIができたらしいので取り急ぎScalaで
-http://www.trinity-site.net/blog/?p=201
-
-サッカーを全く知らないオレがサッカーチームを作ってみた　part1
-http://www.nicovideo.jp/watch/sm4816674
-この動画の「ニコ動長寿シリーズ」タグがきっかけで思いついた。
-=end
-
 require 'kconv'
 require 'net/https'
 require 'uri'
@@ -22,7 +9,7 @@ mail = ARGV[0]
 pass = ARGV[1]
 numbering_word = ARGV[2] || "part".tosjis # "その" "第" など
 search_from = (ARGV[3] || 1).to_i
-max_search_num = (ARGV[4] || 10).to_i # 2013-05-23時点の"part"最大数: 約560
+max_search_num = (ARGV[4] || 10).to_i
 numbering_word_suffix = ARGV[5] || "".tosjis # "話" "回" など
 output_file_name = "#{numbering_word}#{search_from}-" # 処理完了後にも追記
 sleep_sec = 3 # 1秒間隔だとすぐ弾かれる
