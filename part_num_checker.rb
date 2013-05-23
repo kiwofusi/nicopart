@@ -42,7 +42,7 @@ def search_num(cookie, word)
 		http.request(request)
 	end
 	result = JSON.parse(response.body)
-	puts result["message"].to_s if $DEBUG && (result["status"] == "fail")
+	puts result["message"].to_s.tosjis if $DEBUG && (result["status"] == "fail")
 	return result["count"]
 end
 
