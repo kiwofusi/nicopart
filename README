@@ -14,6 +14,10 @@ ruby part_num_checker.rb (ニコ動メアド) (ニコ動パス) part 10 100
 例：「第1話」から「第10話」までの動画数を調べる
 ruby part_num_checker.rb (ニコ動メアド) (ニコ動パス) 第 1 10 話
 
+## 実行結果
+part1-559の動画数グラフ
+https://docs.google.com/spreadsheet/ccc?key=0AtLZy6KOY5-zdGVOMVNnQmlSYUFNbGtfUVdhMGhtR2c&usp=sharing
+
 ## 参考
 rubyでニコニコ動画のコメントを取得する
 http://hai3.net/blog/2011/07/21/ruby-niconico/
