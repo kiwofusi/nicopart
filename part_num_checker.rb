@@ -1,18 +1,19 @@
 # ニコニコ動画のpart数ごとの動画件数を調べる
+require 'kconv'
 require 'net/https'
+require 'uri'
 require 'rubygems'
 require 'json'
 
-numbering_word = "part"
+mail = ARGV[0]
+pass = ARGV[1]
+numbering_word = ARGV[2] || "part".tosjis # "その" "第" など
+search_from = (ARGV[3] || 1).to_i
+max_search_num = (ARGV[4] || 10).to_i # 2013-05-23時点の"part"最大数: 約560
+numbering_word_suffix = ARGV[5] || "".tosjis # "話" "回" など
+output_file_name = "#{numbering_word}#{search_from}-" # 処理完了後にも追記
+sleep_sec = 3 # 1秒間隔だとすぐ弾かれる
 
-search_from = 1
-output_file_name = "#{numbering_word} from #{search_from}.csv"
-output_file = File.open(output_file_name, "w")
-output_file.puts "part, result" # 見出し
-
-# ニコニコ動画にログインする
-mail = "kiwofusi@yahoo.co.jp"
-pass = "jsesguds"
 def login_nicovideo(mail, pass) # http://hai3.net/blog/2011/07/21/ruby-niconico/
 	host = 'secure.nicovideo.jp'
 	path = '/secure/login?site=niconico'
@@ -30,30 +31,41 @@ def login_nicovideo(mail, pass) # http://hai3.net/blog/2011/07/21/ruby-niconico/
 		return "user_session=#{st[idx..-1]}" if idx
 	end
 end
-cookie = login_nicovideo(mail, pass)
 
 def search_num(cookie, word)
 	# http://www.trinity-site.net/blog/?p=201
 	host = "ext.nicovideo.jp"
-	path = "/api/search/search/#{word}?mode=watch&order=d&page=1&sort=n"
+	path = "/api/search/search/#{URI.escape(word.toutf8)}?mode=watch&order=d&page=1&sort=n"
 	response = Net::HTTP.new(host).start do |http|
 		request = Net::HTTP::Get.new(path)
 		request['cookie'] = cookie
 		http.request(request)
 	end
-	return JSON.parse(response.body)["count"]
+	result = JSON.parse(response.body)
+	puts result["message"].to_s if $DEBUG && (result["status"] == "fail")
+	return result["count"]
 end
 
-search_to = search_from # 最後に検索したpart数
-max_search_num = 2#561 # 2013-05-23時点の"part"最大数
-(max_search_num - (search_from-1)).times do |i| 
-	search_to = part_num = i + search_from
-	search_result_num = search_num(cookie, numbering_word + part_num.to_s)
-	output_file.puts "#{part_num}, #{search_result_num}"
+last_search_num = 0
+File.open(output_file_name, "w") do |file|
+	# 見出しを書き出す
+	if numbering_word_suffix.size > 0
+		file.puts "#{numbering_word + "*" + numbering_word_suffix}, result"
+	else
+		file.puts "#{numbering_word}, result" 
+	end
+	cookie = login_nicovideo(mail, pass)
+	(max_search_num - (search_from-1)).times do |i| 
+		part_num = i + search_from
+		search_word = numbering_word + part_num.to_s + numbering_word_suffix
+		search_result_num = search_num(cookie, search_word)
+		break unless search_result_num # 取得失敗
+		last_search_num = part_num
+		file.puts "#{part_num}, #{search_result_num}"
+		sleep sleep_sec
+	end
 end
-output_file.close
-File.rename(output_file_name, output_file_name[0..-5] + " to #{search_to}.csv")
-
+File.rename(output_file_name , output_file_name + "#{last_search_num}#{numbering_word_suffix}.csv")
 
 
 

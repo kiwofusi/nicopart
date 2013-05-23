@@ -3,6 +3,9 @@
 ●ニコニコ長寿動画分析
 part(n)の動画件数を調べる
 
+cd D:\web\nicopart
+ruby part_num_checker.rb kiwofusi@yahoo.co.jp jsesguds
+
 ▼検索結果フォーマット
 http://ext.nicovideo.jp/api/search/search/minecraft?mode=watch&order=d&page=1&sort=n
 
