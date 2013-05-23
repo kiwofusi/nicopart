@@ -1,4 +1,17 @@
 # ニコニコ動画のpart数ごとの動画件数を調べる
+
+=begin 参考
+rubyでニコニコ動画のコメントを取得する
+http://hai3.net/blog/2011/07/21/ruby-niconico/
+
+ニコニコ動画に動画検索APIができたらしいので取り急ぎScalaで
+http://www.trinity-site.net/blog/?p=201
+
+サッカーを全く知らないオレがサッカーチームを作ってみた　part1
+http://www.nicovideo.jp/watch/sm4816674
+この動画の「ニコ動長寿シリーズ」タグがきっかけで思いついた。
+=end
+
 require 'kconv'
 require 'net/https'
 require 'uri'
@@ -42,7 +55,7 @@ def search_num(cookie, word)
 		http.request(request)
 	end
 	result = JSON.parse(response.body)
-	puts result["message"].to_s.tosjis if $DEBUG && (result["status"] == "fail")
+	puts result["message"].to_s.tosjis if result["status"] == "fail"
 	return result["count"]
 end
 
@@ -55,14 +68,23 @@ File.open(output_file_name, "w") do |file|
 		file.puts "#{numbering_word}, result" 
 	end
 	cookie = login_nicovideo(mail, pass)
-	(max_search_num - (search_from-1)).times do |i| 
-		part_num = i + search_from
-		search_word = numbering_word + part_num.to_s + numbering_word_suffix
-		search_result_num = search_num(cookie, search_word)
-		break unless search_result_num # 取得失敗
-		last_search_num = part_num
-		file.puts "#{part_num}, #{search_result_num}"
-		sleep sleep_sec
+	break unless search_num(cookie, "test") # ログイン失敗
+	(max_search_num - (search_from-1)).times do |i|
+		begin
+			part_num = i + search_from
+			search_word = numbering_word + part_num.to_s + numbering_word_suffix
+			search_result_num = search_num(cookie, search_word)
+			raise "取得失敗" unless search_result_num # 取得失敗
+			last_search_num = part_num
+			file.puts "#{part_num}, #{search_result_num}"
+			sleep sleep_sec
+		rescue => e
+			if e.message == "取得失敗"
+				puts "リトライします".tosjis
+				sleep sleep_sec*10
+				retry
+			end
+		end
 	end
 end
 File.rename(output_file_name , output_file_name + "#{last_search_num}#{numbering_word_suffix}.csv")
